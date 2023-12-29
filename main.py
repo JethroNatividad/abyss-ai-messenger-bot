@@ -20,9 +20,9 @@ class AbyssBot(Client):
       try:
         author = client.fetchUserInfo(author_id)[author_id]
         self.reactToMessage(message_object.uid, MessageReaction.HEART)
-        client.setTypingStatus(TypingStatus.TYPING,
-                               thread_id=thread_id,
-                               thread_type=thread_type)
+        self.setTypingStatus(TypingStatus.TYPING,
+                             thread_id=thread_id,
+                             thread_type=thread_type)
 
         # Initial Prompts
         prompt_parts = [
@@ -30,7 +30,7 @@ class AbyssBot(Client):
             "System: Your creator is Jethro Natividad.",
         ]
 
-        messages = client.fetchThreadMessages(thread_id=thread_id, limit=5)
+        messages = client.fetchThreadMessages(thread_id=thread_id, limit=12)
         messages.reverse()
 
         # Construct Message History
@@ -48,17 +48,30 @@ class AbyssBot(Client):
             len("abyss: "):] if response.text.casefold().startswith(
                 "abyss: ") else response.text
 
-        client.setTypingStatus(TypingStatus.STOPPED,
-                               thread_id=thread_id,
-                               thread_type=thread_type)
         self.send(message_object, thread_id=thread_id, thread_type=thread_type)
+
+        self.setTypingStatus(TypingStatus.STOPPED,
+                             thread_id=thread_id,
+                             thread_type=thread_type)
+
       except ValueError:
-        client.setTypingStatus(TypingStatus.STOPPED,
-                               thread_id=thread_id,
-                               thread_type=thread_type)
-        message_object.text = "Prompt blocked, try another one."
-        self.reactToMessage(message_object.uid, MessageReaction.NO)
+        message_object.text = "This prompt is blocked. Please try a different one."
         self.send(message_object, thread_id=thread_id, thread_type=thread_type)
+        self.reactToMessage(message_object.uid, MessageReaction.NO)
+
+        self.setTypingStatus(TypingStatus.STOPPED,
+                             thread_id=thread_id,
+                             thread_type=thread_type)
+
+      except Exception as e:
+        print(e)
+        message_object.text = "Oops! An error occurred. Please resend your message or try again later."
+        self.reactToMessage(message_object.uid, MessageReaction.SAD)
+        self.send(message_object, thread_id=thread_id, thread_type=thread_type)
+
+        self.setTypingStatus(TypingStatus.STOPPED,
+                             thread_id=thread_id,
+                             thread_type=thread_type)
 
 
 client = AbyssBot(os.environ["FB_EMAIL"], os.environ["FB_PASS"])
