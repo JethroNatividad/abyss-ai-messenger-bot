@@ -33,6 +33,14 @@ class AbyssBot(Client):
         messages = client.fetchThreadMessages(thread_id=thread_id, limit=12)
         messages.reverse()
 
+        # Find messages that are "Let's switch to another topic, shall we?", then remove all messages before that.
+
+        for message in messages:
+          if message.text.startswith("Let's switch to another topic, shall we?"
+                                     ) and message.author == self.uid:
+            messages = messages[messages.index(message):]
+            break
+
         # Construct Message History
         for message in messages:
           if message.author == self.uid:
@@ -55,7 +63,7 @@ class AbyssBot(Client):
                              thread_type=thread_type)
 
       except ValueError:
-        message_object.text = "This prompt is blocked. Please try a different one."
+        message_object.text = "Let's switch to another topic, shall we?"
         self.send(message_object, thread_id=thread_id, thread_type=thread_type)
         self.reactToMessage(message_object.uid, MessageReaction.NO)
 
