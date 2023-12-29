@@ -24,11 +24,23 @@ class AbyssBot(Client):
                                thread_id=thread_id,
                                thread_type=thread_type)
 
+        # Initial Prompts
         prompt_parts = [
             "System: You are \"Abyss\" an ai messenger chatbot, your chat starts with \"Abyss: \".",
             "System: Your creator is Jethro Natividad.",
-            f"User({author.name}): {message_object.text}"
         ]
+
+        messages = client.fetchThreadMessages(thread_id=thread_id, limit=5)
+        messages.reverse()
+
+        # Construct Message History
+        for message in messages:
+          if message.author == self.uid:
+            prompt_parts.append(f"Abyss: {message.text}")
+          else:
+            prompt_parts.append(f"User({author.name}): {message.text}")
+
+        prompt_parts.append(f"User({author.name}): {message_object.text}")
 
         response = model.generate_content(prompt_parts)
 
