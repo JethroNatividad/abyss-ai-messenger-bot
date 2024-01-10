@@ -1,9 +1,6 @@
 import os
 from fbchat import log, Client, MessageReaction, TypingStatus
 import google.generativeai as genai
-from keep_alive import keep_alive
-
-keep_alive()
 
 genai.configure(api_key=os.environ["GEMINI_KEY"])
 model = genai.GenerativeModel('gemini-pro')
