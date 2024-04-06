@@ -1,9 +1,7 @@
 import os
 from JethroNatividad_fbchat import log, Client, MessageReaction, TypingStatus
-import google.generativeai as genai
-
-genai.configure(api_key=os.environ["GEMINI_KEY"])
-model = genai.GenerativeModel('gemini-pro')
+import requests
+import json
 
 
 class AbyssBot(Client):
@@ -47,27 +45,36 @@ class AbyssBot(Client):
 
         prompt_parts.append(f"User({author.name}): {message_object.text}")
 
-        response = model.generate_content(prompt_parts)
+        # Make a POST request to the Gemini API
+        api_key = os.environ["GEMINI_KEY"]
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "contents": [
+                {"role": "user", "parts": [{"text": "\n".join(prompt_parts)}]}
+            ]
+        }
+        response = requests.post(url, headers=headers, json=data)
+        print("\n".join(prompt_parts))
+        print(response.text)
+        print(response.status_code)
 
-        message_object.text = response.text[
-            len("abyss: "):] if response.text.casefold().startswith(
-                "abyss: ") else response.text
+        if response.status_code == 200:
+            response_json = json.loads(response.text)
+
+            if "candidates" not in response_json:
+              self.reactToMessage(message_object.uid, MessageReaction.NO)
+              message_object.text = "Let's switch to another topic, shall we?"
+            else:
+              response_text = response_json["candidates"][0]["content"]["parts"][0]["text"]
+              message_object.text = response_text[len("abyss: "):] if response_text.casefold().startswith("abyss: ") else response_text
+        else:
+            raise ValueError("API request failed")
 
         self.send(message_object, thread_id=thread_id, thread_type=thread_type)
-
         self.setTypingStatus(TypingStatus.STOPPED,
                              thread_id=thread_id,
                              thread_type=thread_type)
-
-      except ValueError:
-        message_object.text = "Let's switch to another topic, shall we?"
-        self.send(message_object, thread_id=thread_id, thread_type=thread_type)
-        self.reactToMessage(message_object.uid, MessageReaction.NO)
-
-        self.setTypingStatus(TypingStatus.STOPPED,
-                             thread_id=thread_id,
-                             thread_type=thread_type)
-
       except Exception as e:
         print(e)
         message_object.text = "Oops! An error occurred. Please resend your message or try again later."
