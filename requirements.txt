@@ -4,7 +4,7 @@ beautifulsoup4==4.12.2
 cachetools==5.3.2
 certifi==2023.11.17
 charset-normalizer==3.3.2
-fbchat==1.9.7
+JethroNatividad-fbchat==1.9.7
 google-ai-generativelanguage==0.4.0
 google-api-core==2.15.0
 google-auth==2.25.2

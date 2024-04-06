@@ -1,5 +1,5 @@
 import os
-from fbchat import log, Client, MessageReaction, TypingStatus
+from JethroNatividad_fbchat import log, Client, MessageReaction, TypingStatus
 import google.generativeai as genai
 
 genai.configure(api_key=os.environ["GEMINI_KEY"])
